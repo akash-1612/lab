@@ -1,0 +1,76 @@
+import java.math.BigInteger;
+import java.util.Random;
+import java.util.Scanner;
+public class SimpleRSA {
+    private BigInteger n, d, e;
+    public SimpleRSA() {
+        Random rnd = new Random();       
+        BigInteger p = BigInteger.probablePrime(512, rnd);
+        BigInteger q = BigInteger.probablePrime(512, rnd);
+        n = p.multiply(q);
+        BigInteger phi = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE));
+        e = BigInteger.valueOf(65537);
+        d = e.modInverse(phi);
+    }
+    public BigInteger encrypt(BigInteger message) {
+        return message.modPow(e, n);
+    }
+    public BigInteger decrypt(BigInteger ciphertext) {
+        return ciphertext.modPow(d, n);
+    }
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        SimpleRSA rsa = new SimpleRSA();
+        System.out.print("Enter a message to encrypt: ");
+        String text = sc.nextLine();
+        BigInteger message = new BigInteger(text.getBytes());
+        BigInteger ciphertext = rsa.encrypt(message);
+        System.out.println("\nEncrypted (Ciphertext): \n" + ciphertext);
+        BigInteger decryptedData = rsa.decrypt(ciphertext);
+        String decryptedText = new String(decryptedData.toByteArray());
+        System.out.println("\nDecrypted (Plaintext): \n" + decryptedText);
+        sc.close();
+    }
+}
+
+import java.util.Scanner;
+public class DiffieHellman {
+    static long power(long base, long exp, long mod) {
+        long result = 1;
+        base = base % mod;
+        while (exp > 0) {
+            if (exp % 2 == 1) result = (result * base) % mod;
+            exp = exp / 2;
+            base = (base * base) % mod;
+        }
+        return result;
+    }
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter a prime number (P): ");
+        long p = sc.nextLong();
+        System.out.print("Enter a primitive root of P (G): ");
+        long g = sc.nextLong();
+        System.out.print("Enter Alice's private key (a): ");
+        long a = sc.nextLong();
+        long x = power(g, a, p); 
+        System.out.print("Enter Bob's private key (b): ");
+        long b = sc.nextLong();
+        long y = power(g, b, p); 
+        System.out.println("\n--- Key Exchange ---");
+        System.out.println("Alice publicly sends: " + x);
+        System.out.println("Bob publicly sends:   " + y);
+        long aliceSharedSecret = power(y, a, p); 
+        long bobSharedSecret = power(x, b, p);   
+        System.out.println("\n--- Result ---");
+        System.out.println("Alice's computed secret: " + aliceSharedSecret);
+        System.out.println("Bob's computed secret:   " + bobSharedSecret);
+        if (aliceSharedSecret == bobSharedSecret) {
+            System.out.println("Success! Both share the identical secret key.");
+        } else {
+            System.out.println("Error: Keys do not match.");
+        }
+        sc.close();
+    }
+}
+
