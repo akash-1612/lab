@@ -1,34 +1,45 @@
-import java.math.BigInteger;
-import java.util.Random;
 import java.util.Scanner;
-public class SimpleRSA {
-    private BigInteger n, d, e;
-    public SimpleRSA() {
-        Random rnd = new Random();       
-        BigInteger p = BigInteger.probablePrime(512, rnd);
-        BigInteger q = BigInteger.probablePrime(512, rnd);
-        n = p.multiply(q);
-        BigInteger phi = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE));
-        e = BigInteger.valueOf(65537);
-        d = e.modInverse(phi);
+public class CustomRSANoBigInt {
+    static long gcd(long a, long b) {
+        if (b == 0) return a;
+        return gcd(b, a % b);
     }
-    public BigInteger encrypt(BigInteger message) {
-        return message.modPow(e, n);
+    static long power(long base, long exp, long mod) {
+        long result = 1;
+        for (int i = 0; i < exp; i++) {
+            result = (result * base) % mod; 
+        } 
+        return result;
     }
-    public BigInteger decrypt(BigInteger ciphertext) {
-        return ciphertext.modPow(d, n);
     }
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        SimpleRSA rsa = new SimpleRSA();
-        System.out.print("Enter a message to encrypt: ");
-        String text = sc.nextLine();
-        BigInteger message = new BigInteger(text.getBytes());
-        BigInteger ciphertext = rsa.encrypt(message);
-        System.out.println("\nEncrypted (Ciphertext): \n" + ciphertext);
-        BigInteger decryptedData = rsa.decrypt(ciphertext);
-        String decryptedText = new String(decryptedData.toByteArray());
-        System.out.println("\nDecrypted (Plaintext): \n" + decryptedText);
+        System.out.print("Enter first prime number (p): ");
+        long p = sc.nextLong();
+        System.out.print("Enter second prime number (q): ");
+        long q = sc.nextLong();
+        System.out.print("Enter a message (as a number): ");
+        long message = sc.nextLong();
+        long n = p * q;
+        long phi = (p - 1) * (q - 1);
+        long e = 2;
+        while (e < phi) {
+            if (gcd(e, phi) == 1) {
+                break;
+            }
+            e++;
+        }
+        long d = 1;
+        while ((d * e) % phi != 1) {
+            d++;
+        }
+        System.out.println("\n--- RSA Keys ---");
+        System.out.println("Public Key (e, n):  (" + e + ", " + n + ")");
+        System.out.println("Private Key (d, n): (" + d + ", " + n + ")");
+        long ciphertext = power(message, e, n);
+        System.out.println("\nEncrypted Message: " + ciphertext);
+        long decryptedMessage = power(ciphertext, d, n);
+        System.out.println("Decrypted Message: " + decryptedMessage);
         sc.close();
     }
 }
@@ -37,11 +48,8 @@ import java.util.Scanner;
 public class DiffieHellman {
     static long power(long base, long exp, long mod) {
         long result = 1;
-        base = base % mod;
-        while (exp > 0) {
-            if (exp % 2 == 1) result = (result * base) % mod;
-            exp = exp / 2;
-            base = (base * base) % mod;
+        for (int i = 0; i < exp; i++) {
+            result = (result * base) % mod; 
         }
         return result;
     }
